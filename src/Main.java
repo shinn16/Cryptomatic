@@ -204,24 +204,33 @@ class Crypto{
     Wrapper bruteForce(Wrapper wrapper){
         HashSet<String> file = new HashSet<>();
         Wrapper success = null; // used as return value.
-        boolean done = false;
+        long startTime = System.currentTimeMillis(), endTime; // used to get decrypt time.
         // for all possible combos, generate a key
         for(char x : characters){
             for (char y: characters) {
                 Wrapper attempt = decrypt(wrapper, new char[]{x, y}); // attempt to decode using current key
                 if (attempt == null) break; // if we get a null return, it means we skipped out due to bad characters.
-                file.addAll(Arrays.asList(attempt.getEncrypted().replaceAll("[?!,.]", "").toLowerCase().split("[ \n\r]"))); // hash the decrypt attempt
-                if (dictionary.containsAll(file)){ // use set operations to increase speed
-                    done = true; // if we succeeded, we are done. add the key to the data wrapper and break out.
+                file.addAll(Arrays.asList(attempt.getEncrypted().replaceAll("[?!,.:;#$\"'*-=+_()]", "").toLowerCase().split("[ \n\r]"))); // hash the decrypt attempt
+
+                // get the portion of text that is in the dictionary.
+                double size = file.size();
+                file.retainAll(dictionary);
+                size = (double) file.size()/ size;
+
+                // if 70 percent of the text is in the dictionary, accept it.
+                if(size >= .7){
                     attempt.setData(new char[]{x,y});
                     success = attempt;
-                    break;
+                    return success;
                 }
                 file.clear(); // clear the set if for the next run.
             }
-            if(done) break;
+
         }
-        return success;
+        endTime = System.currentTimeMillis();
+        long totalTime = endTime - startTime;
+        System.out.println("Decrypted in: " + totalTime + " milliseconds.");
+        return null;
     }
 }
 
