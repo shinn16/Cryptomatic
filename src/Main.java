@@ -6,14 +6,16 @@ public class Main {
         // initial variables
         boolean done = false;
         int choice = 0;
+        Wrapper wrapper = null;
         Crypto crypto = null;
         Scanner scanner = new Scanner(System.in);
+        PrintWriter writer;
 
 
         try{
-            crypto = new Crypto("Dictionary.txt");
-        }catch (FileNotFoundException e){
-            System.out.println("Fatal error, dictionary not found.");
+            crypto = new Crypto("Dictionary.txt", "Chars.txt");
+        }catch (Exception e){
+            System.out.println("Fatal error, dictionary not found or character set not found.");
             System.exit(0);
         }
 
@@ -32,12 +34,23 @@ public class Main {
                 choice = Integer.parseInt(scanner.nextLine());
                 switch (choice){
                     case 1:
-                        crypto.encrypt(getFileCharacters(), getUserKey());
+                        wrapper = crypto.encrypt(getFileCharacters(), getUserKey());
+                        writer = new PrintWriter(wrapper.getFileName());
+                        writer.write(wrapper.getEncrypted());
+                        writer.close();
                         break;
                     case 2:
-                        crypto.decrypt(getFileCharacters(), getUserKey());
+                        wrapper = crypto.decrypt(getFileCharacters(), getUserKey());
+                        writer = new PrintWriter(wrapper.getFileName());
+                        writer.write(wrapper.getEncrypted());
+                        writer.close();
                         break;
                     case 3:
+                        wrapper = crypto.bruteForce(getFileCharacters());
+                        if (wrapper != null){
+                            System.out.println("Decrypted successfully!\n");
+                            System.out.println(wrapper.getEncrypted());
+                        }else System.out.println("Failed to decrypt the file.");
                         break;
                     case 4:
                         done = true;
@@ -118,17 +131,18 @@ public class Main {
 
 class Crypto{
     private HashSet<String> dictionary = new HashSet<>();
+    private HashSet<Character> characters = new HashSet<>();
 
-    Crypto(String dictionaryFile) throws FileNotFoundException{
+    Crypto(String dictionaryFile, String characterFile) throws Exception{
         Scanner scanner = new Scanner(new File(dictionaryFile));
-        while (scanner.hasNextLine()){
-            String line = scanner.nextLine(); // gets the line
-            String[] words = line.split(" "); // turns the line into words
-            Collections.addAll(dictionary, words); // adds the words to the dictionary
-        }
+        while (scanner.hasNextLine()) dictionary.add(scanner.nextLine()); // adds the words to the dictionary
+
+        scanner = new Scanner(new File(characterFile));
+        while (scanner.hasNextLine()) characters.add(scanner.nextLine().charAt(0)); // adds chars to the character dictionary
+        characters.add(' ');  // adding the space because it disappears from the text file.
     }
 
-    void encrypt(Wrapper wrapper, char[] key) throws IOException{
+    Wrapper encrypt(Wrapper wrapper, char[] key) throws IOException{
 
         char[] characters = wrapper.getData();
         ArrayList<Character> converted = new ArrayList<>(); // storage for the converted characters
@@ -151,27 +165,59 @@ class Crypto{
         StringBuilder builder = new StringBuilder(converted.size());
         for(Character ch: converted) builder.append(ch);
         writeOut = builder.toString();
-        writer = new PrintWriter(wrapper.getFileName());
-        writer.write(writeOut);
-        writer.close();
+        return new Wrapper(wrapper.getFileName(), writeOut);
     }
 
-    void decrypt(Wrapper wrapper, char[] key) throws IOException{
-        encrypt(wrapper, key);
+    Wrapper decrypt(Wrapper wrapper, char[] key) throws IOException{
+       return encrypt(wrapper, key);
     }
 
-    void bruteForce(char[] characters){
-
+    Wrapper bruteForce(Wrapper wrapper) throws IOException{
+        HashSet<String> file = new HashSet<>();
+        Wrapper success = null;
+        int pass = 0;
+        boolean done = false;
+        // for all possible combos, generate a key
+        for(char x : characters){
+            for (char y: characters) {
+                Wrapper attempt = decrypt(wrapper, new char[]{x, y}); // attempt to decode using current key
+                file.addAll(Arrays.asList(attempt.getEncrypted().split(" "))); // hash the decrypt attempt
+                for (String element : file){
+                    System.out.println(element);
+                    if (dictionary.contains(element)){
+                        System.out.println("Here");
+                        pass ++;
+                    }
+                    else break;
+                }
+                if (pass == file.size()){
+                    done = true;
+                    success = attempt;
+                    break;
+                }
+                if (done) break;
+            }
+        }
+        return success;
     }
 }
 
 class Wrapper{
-    private String fileName;
+    private String fileName, encrypted;
     private char[] data;
 
     Wrapper(String fileName, char[] data){
         this.fileName = fileName;
         this.data = data;
+    }
+
+    Wrapper(String fileName, String encrypted){
+        this.fileName = fileName;
+        this.encrypted = encrypted;
+    }
+
+    String getEncrypted() {
+        return encrypted;
     }
 
     String getFileName() {
