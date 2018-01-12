@@ -49,9 +49,11 @@ public class Main {
                         wrapper = crypto.bruteForce(getFileCharacters());
                         if (wrapper != null){
                             System.out.println("Decrypted successfully!\n");
-                            System.out.println("Key is: " + Arrays.toString(wrapper.getData()) +
-                            "\n Contents are:");
+                            System.out.println("Key is: " + Arrays.toString(wrapper.getData()) +  "\n Contents are:");
                             System.out.println(wrapper.getEncrypted());
+                            writer = new PrintWriter(new File("bruteForce.txt"));
+                            writer.write(wrapper.getEncrypted());
+                            writer.close();
                         }else System.out.println("Failed to decrypt the file.");
                         break;
                     case 4:
@@ -219,15 +221,18 @@ class Crypto{
                 // if 70 percent of the text is in the dictionary, accept it.
                 if(size >= .7){
                     attempt.setData(new char[]{x,y});
+
+                    // printing out time for decryption
+                    endTime = System.currentTimeMillis();
+                    long totalTime = endTime - startTime;
+                    System.out.println("Decrypted in: " + totalTime + " milliseconds.");
+
                     return attempt;
                 }
                 file.clear(); // clear the set if for the next run.
             }
 
         }
-        endTime = System.currentTimeMillis();
-        long totalTime = endTime - startTime;
-        System.out.println("Decrypted in: " + totalTime + " milliseconds.");
         return null;
     }
 }
