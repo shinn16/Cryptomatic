@@ -1,18 +1,14 @@
 import java.io.*;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Scanner;
+import java.util.*;
 
 public class Main {
     public static void main(String[] args){
         // initial variables
         boolean done = false;
-        Scanner scanner = new Scanner(System.in);
-        char[] data = null;
-        String filename, key;
         int choice = 0;
         Crypto crypto = null;
+        Scanner scanner = new Scanner(System.in);
+
 
         try{
             crypto = new Crypto("Dictionary.txt");
@@ -52,6 +48,8 @@ public class Main {
                 }
             }catch (NumberFormatException e){
                 System.out.println("\"" + choice + "\"" + " was not a valid selection.");
+            }catch (IOException e){
+                e.printStackTrace();
             }
             System.out.println(); // blank line between runs for easier menu reading
         }
@@ -59,10 +57,10 @@ public class Main {
 
     }
 
-    private static char[] getFileCharacters(){
-        boolean validFile = true;
+    private static Wrapper getFileCharacters(){
+        boolean validFile;
         Scanner scanner = new Scanner(System.in);
-        String filename;
+        String filename = null;
         char[] data = null;
 
         do{ // let the user input a file, if it is valid continue
@@ -77,7 +75,7 @@ public class Main {
                 System.out.println("Please enter a valid file location.\n");
             }
         }while (!validFile); // if the file is not valid, go until the file is valid.
-        return data;
+        return new Wrapper(filename, data);
     }
 
     private static char[] getUserKey(){
@@ -130,17 +128,57 @@ class Crypto{
         }
     }
 
-    String encrypt(char[] filename, char[] key){
-        String encrypted = "";
-        return encrypted;
+    void encrypt(Wrapper wrapper, char[] key) throws IOException{
+
+        char[] characters = wrapper.getData();
+        ArrayList<Character> converted = new ArrayList<>(); // storage for the converted characters
+        PrintWriter writer;
+        String writeOut;
+
+        if (characters.length%2 != 0){ // if we have an odd number of characters, add one space.
+            characters = Arrays.copyOf(characters, characters.length+1);
+            characters[characters.length - 1] = ' ';
+        }
+
+        for (int i = 0; i < characters.length; i+=2) { // for every set of two characters, XOR with our key
+            char one = characters[i];
+            char two = characters[i + 1];
+            converted.add((char) (one ^ key[0]));
+            converted.add((char) (two ^ key[1]));
+        }
+
+        // converting into a string writes it to file.
+        StringBuilder builder = new StringBuilder(converted.size());
+        for(Character ch: converted) builder.append(ch);
+        writeOut = builder.toString();
+        writer = new PrintWriter(wrapper.getFileName());
+        writer.write(writeOut);
+        writer.close();
     }
 
-    String decrypt(char[] filename, char[] key){
-        String decrypted = "";
-        return decrypted;
+    void decrypt(Wrapper wrapper, char[] key) throws IOException{
+        encrypt(wrapper, key);
     }
 
-    void bruteForce(String filename){
+    void bruteForce(char[] characters){
 
+    }
+}
+
+class Wrapper{
+    private String fileName;
+    private char[] data;
+
+    Wrapper(String fileName, char[] data){
+        this.fileName = fileName;
+        this.data = data;
+    }
+
+    String getFileName() {
+        return fileName;
+    }
+
+    char[] getData() {
+        return data;
     }
 }
