@@ -183,20 +183,21 @@ class Crypto{
                 Wrapper attempt = decrypt(wrapper, new char[]{x, y}); // attempt to decode using current key
                 file.addAll(Arrays.asList(attempt.getEncrypted().split(" "))); // hash the decrypt attempt
                 for (String element : file){
-                    System.out.println(element);
-                    if (dictionary.contains(element)){
-                        System.out.println("Here");
+                    if (dictionary.contains(element.toLowerCase())){
                         pass ++;
                     }
                     else break;
                 }
+
                 if (pass == file.size()){
                     done = true;
                     success = attempt;
                     break;
                 }
-                if (done) break;
+                else pass = 0;
+
             }
+            if (done) break;
         }
         return success;
     }
