@@ -183,7 +183,7 @@ class Crypto{
                 Wrapper attempt = decrypt(wrapper, new char[]{x, y}); // attempt to decode using current key
                 file.addAll(Arrays.asList(attempt.getEncrypted().split(" "))); // hash the decrypt attempt
                 for (String element : file){
-                    if (dictionary.contains(element.toLowerCase())){
+                    if (dictionary.contains(element.toLowerCase())){  // check the lower case of all elements
                         pass ++;
                     }
                     else break;
