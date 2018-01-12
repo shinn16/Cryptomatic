@@ -6,7 +6,7 @@ public class Main {
         // initial variables
         boolean done = false;
         int choice = 0;
-        Wrapper wrapper = null;
+        Wrapper wrapper;
         Crypto crypto = null;
         Scanner scanner = new Scanner(System.in);
         PrintWriter writer;
@@ -141,7 +141,7 @@ class Crypto{
 
         scanner = new Scanner(new File(characterFile));
         while (scanner.hasNextLine()) characters.add(scanner.nextLine().charAt(0)); // adds chars to the character dictionary
-        characters.add(' ');  // adding the space because it disappears from the text file.
+        characters.add(' ');  // adding the space because it disappears from the text file
     }
 
     Wrapper encrypt(Wrapper wrapper, char[] key){
@@ -175,23 +175,22 @@ class Crypto{
 
     Wrapper bruteForce(Wrapper wrapper){
         HashSet<String> file = new HashSet<>();
-        Wrapper success = null;
-        int pass = 0;
+        Wrapper success = null; // used as return value.
         boolean done = false;
         // for all possible combos, generate a key
         for(char x : characters){
             for (char y: characters) {
                 Wrapper attempt = decrypt(wrapper, new char[]{x, y}); // attempt to decode using current key
-                file.addAll(Arrays.asList(attempt.getEncrypted().split(" "))); // hash the decrypt attempt
-                if (dictionary.containsAll(file)){
-                    done = true;
+                file.addAll(Arrays.asList(attempt.getEncrypted().split("[ \n\r]"))); // hash the decrypt attempt
+                if (dictionary.containsAll(file)){ // use set operations to increase speed
+                    done = true; // if we succeeded, we are done. add the key to the data wrapper and break out.
                     attempt.setData(new char[]{x,y});
                     success = attempt;
                     break;
                 }
-                file.clear();
+                file.clear(); // clear the set if for the next run.
             }
-            if (done) break;
+            if(done) break;
         }
         return success;
     }
