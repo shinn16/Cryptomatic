@@ -181,7 +181,7 @@ class Crypto{
         for(char x : characters){
             for (char y: characters) {
                 Wrapper attempt = decrypt(wrapper, new char[]{x, y}); // attempt to decode using current key
-                file.addAll(Arrays.asList(attempt.getEncrypted().split("[ \n\r]"))); // hash the decrypt attempt
+                file.addAll(Arrays.asList(attempt.getEncrypted().toLowerCase().split("[ \n\r]"))); // hash the decrypt attempt
                 if (dictionary.containsAll(file)){ // use set operations to increase speed
                     done = true; // if we succeeded, we are done. add the key to the data wrapper and break out.
                     attempt.setData(new char[]{x,y});
