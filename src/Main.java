@@ -49,6 +49,8 @@ public class Main {
                         wrapper = crypto.bruteForce(getFileCharacters());
                         if (wrapper != null){
                             System.out.println("Decrypted successfully!\n");
+                            System.out.println("Key is: " + Arrays.toString(wrapper.getData()) +
+                            "\n Contents are:");
                             System.out.println(wrapper.getEncrypted());
                         }else System.out.println("Failed to decrypt the file.");
                         break;
@@ -142,11 +144,10 @@ class Crypto{
         characters.add(' ');  // adding the space because it disappears from the text file.
     }
 
-    Wrapper encrypt(Wrapper wrapper, char[] key) throws IOException{
+    Wrapper encrypt(Wrapper wrapper, char[] key){
 
         char[] characters = wrapper.getData();
         ArrayList<Character> converted = new ArrayList<>(); // storage for the converted characters
-        PrintWriter writer;
         String writeOut;
 
         if (characters.length%2 != 0){ // if we have an odd number of characters, add one space.
@@ -190,6 +191,7 @@ class Crypto{
                 }
                 if (pass == file.size()){
                     done = true;
+                    attempt.setData(new char[]{x,y});
                     success = attempt;
                     break;
                 }
@@ -227,5 +229,9 @@ class Wrapper{
 
     char[] getData() {
         return data;
+    }
+
+    void setData(char[] data) {
+        this.data = data;
     }
 }
