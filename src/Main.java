@@ -203,7 +203,6 @@ class Crypto{
 
     Wrapper bruteForce(Wrapper wrapper){
         HashSet<String> file = new HashSet<>();
-        Wrapper success = null; // used as return value.
         long startTime = System.currentTimeMillis(), endTime; // used to get decrypt time.
         // for all possible combos, generate a key
         for(char x : characters){
@@ -220,8 +219,7 @@ class Crypto{
                 // if 70 percent of the text is in the dictionary, accept it.
                 if(size >= .7){
                     attempt.setData(new char[]{x,y});
-                    success = attempt;
-                    return success;
+                    return attempt;
                 }
                 file.clear(); // clear the set if for the next run.
             }
