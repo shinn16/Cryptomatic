@@ -142,6 +142,8 @@ class Crypto{
         scanner = new Scanner(new File(characterFile));
         while (scanner.hasNextLine()) characters.add(scanner.nextLine().charAt(0)); // adds chars to the character dictionary
         characters.add(' ');  // adding the space because it disappears from the text file
+        characters.add('\r');
+        characters.add('\n');
     }
 
     Wrapper encrypt(Wrapper wrapper, char[] key){
@@ -169,7 +171,7 @@ class Crypto{
         return new Wrapper(wrapper.getFileName(), writeOut);
     }
 
-    Wrapper decrypt(Wrapper wrapper, char[] key){
+    private Wrapper decrypt(Wrapper wrapper, char[] key){
         char[] chars = wrapper.getData();
         ArrayList<Character> converted = new ArrayList<>(); // storage for the converted characters
         String writeOut;
@@ -180,10 +182,10 @@ class Crypto{
         }
 
         for (int i = 0; i < chars.length; i+=2) { // for every set of two characters, XOR with our key
-            char one = chars[i];
+            char one = (char)(chars[i] ^ key[0]);
             char two = (char)(chars[i + 1] ^ key[1]);
 
-            if (!characters.contains(one) || !characters.contains(two)){ // if either character is invalid
+            if (!characters.contains(one) && !characters.contains(two)){ // if either character is invalid
                 return null;
             }else{
                 converted.add(one);
@@ -206,7 +208,7 @@ class Crypto{
         // for all possible combos, generate a key
         for(char x : characters){
             for (char y: characters) {
-                Wrapper attempt = encrypt(wrapper, new char[]{x, y}); // attempt to decode using current key
+                Wrapper attempt = decrypt(wrapper, new char[]{x, y}); // attempt to decode using current key
                 if (attempt == null) break; // if we get a null return, it means we skipped out due to bad characters.
                 file.addAll(Arrays.asList(attempt.getEncrypted().replaceAll("[?!,.]", "").toLowerCase().split("[ \n\r]"))); // hash the decrypt attempt
                 if (dictionary.containsAll(file)){ // use set operations to increase speed
