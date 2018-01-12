@@ -169,11 +169,11 @@ class Crypto{
         return new Wrapper(wrapper.getFileName(), writeOut);
     }
 
-    Wrapper decrypt(Wrapper wrapper, char[] key) throws IOException{
+    Wrapper decrypt(Wrapper wrapper, char[] key){
        return encrypt(wrapper, key);
     }
 
-    Wrapper bruteForce(Wrapper wrapper) throws IOException{
+    Wrapper bruteForce(Wrapper wrapper){
         HashSet<String> file = new HashSet<>();
         Wrapper success = null;
         int pass = 0;
@@ -183,21 +183,13 @@ class Crypto{
             for (char y: characters) {
                 Wrapper attempt = decrypt(wrapper, new char[]{x, y}); // attempt to decode using current key
                 file.addAll(Arrays.asList(attempt.getEncrypted().split(" "))); // hash the decrypt attempt
-                for (String element : file){
-                    if (dictionary.contains(element.toLowerCase())){  // check the lower case of all elements
-                        pass ++;
-                    }
-                    else break;
-                }
-                if (pass == file.size()){
+                if (dictionary.containsAll(file)){
                     done = true;
                     attempt.setData(new char[]{x,y});
                     success = attempt;
                     break;
                 }
-                else pass = 0;
                 file.clear();
-
             }
             if (done) break;
         }
