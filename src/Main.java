@@ -40,7 +40,7 @@ public class Main {
                         writer.close();
                         break;
                     case 2:
-                        wrapper = crypto.decrypt(getFileCharacters(), getUserKey());
+                        wrapper = crypto.encrypt(getFileCharacters(), getUserKey());
                         writer = new PrintWriter(wrapper.getFileName());
                         writer.write(wrapper.getEncrypted());
                         writer.close();
@@ -146,18 +146,18 @@ class Crypto{
 
     Wrapper encrypt(Wrapper wrapper, char[] key){
 
-        char[] characters = wrapper.getData();
+        char[] chars = wrapper.getData();
         ArrayList<Character> converted = new ArrayList<>(); // storage for the converted characters
         String writeOut;
 
-        if (characters.length%2 != 0){ // if we have an odd number of characters, add one space.
-            characters = Arrays.copyOf(characters, characters.length+1);
-            characters[characters.length - 1] = ' ';
+        if (chars.length%2 != 0){ // if we have an odd number of characters, add one space.
+            chars = Arrays.copyOf(chars, chars.length+1);
+            chars[chars.length - 1] = ' ';
         }
 
-        for (int i = 0; i < characters.length; i+=2) { // for every set of two characters, XOR with our key
-            char one = characters[i];
-            char two = characters[i + 1];
+        for (int i = 0; i < chars.length; i+=2) { // for every set of two characters, XOR with our key
+            char one = chars[i];
+            char two = chars[i + 1];
             converted.add((char) (one ^ key[0]));
             converted.add((char) (two ^ key[1]));
         }
@@ -170,7 +170,33 @@ class Crypto{
     }
 
     Wrapper decrypt(Wrapper wrapper, char[] key){
-       return encrypt(wrapper, key);
+        char[] chars = wrapper.getData();
+        ArrayList<Character> converted = new ArrayList<>(); // storage for the converted characters
+        String writeOut;
+
+        if (chars.length%2 != 0){ // if we have an odd number of characters, add one space.
+            chars = Arrays.copyOf(chars, chars.length+1);
+            chars[chars.length - 1] = ' ';
+        }
+
+        for (int i = 0; i < chars.length; i+=2) { // for every set of two characters, XOR with our key
+            char one = chars[i];
+            char two = (char)(chars[i + 1] ^ key[1]);
+
+            if (!characters.contains(one) || !characters.contains(two)){ // if either character is invalid
+                return null;
+            }else{
+                converted.add(one);
+                converted.add(two);
+            }
+
+        }
+
+        // converting into a string writes it to file.
+        StringBuilder builder = new StringBuilder(converted.size());
+        for(Character ch: converted) builder.append(ch);
+        writeOut = builder.toString();
+        return new Wrapper(wrapper.getFileName(), writeOut);
     }
 
     Wrapper bruteForce(Wrapper wrapper){
@@ -180,8 +206,9 @@ class Crypto{
         // for all possible combos, generate a key
         for(char x : characters){
             for (char y: characters) {
-                Wrapper attempt = decrypt(wrapper, new char[]{x, y}); // attempt to decode using current key
-                file.addAll(Arrays.asList(attempt.getEncrypted().toLowerCase().split("[ \n\r]"))); // hash the decrypt attempt
+                Wrapper attempt = encrypt(wrapper, new char[]{x, y}); // attempt to decode using current key
+                if (attempt == null) break; // if we get a null return, it means we skipped out due to bad characters.
+                file.addAll(Arrays.asList(attempt.getEncrypted().replaceAll("[?!,.]", "").toLowerCase().split("[ \n\r]"))); // hash the decrypt attempt
                 if (dictionary.containsAll(file)){ // use set operations to increase speed
                     done = true; // if we succeeded, we are done. add the key to the data wrapper and break out.
                     attempt.setData(new char[]{x,y});
