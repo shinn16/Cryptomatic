@@ -188,13 +188,13 @@ class Crypto{
                     }
                     else break;
                 }
-
                 if (pass == file.size()){
                     done = true;
                     success = attempt;
                     break;
                 }
                 else pass = 0;
+                file.clear();
 
             }
             if (done) break;
