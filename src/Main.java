@@ -211,7 +211,7 @@ class Crypto{
             for (char y: characters) {
                 Wrapper attempt = decrypt(wrapper, new char[]{x, y}); // attempt to decode using current key
                 if (attempt == null) break; // if we get a null return, it means we skipped out due to bad characters.
-                file.addAll(Arrays.asList(attempt.getEncrypted().replaceAll("[?!,.:;#$\"'*-=+_()]", "").toLowerCase().split("[ \n\r]"))); // hash the decrypt attempt
+                file.addAll(Arrays.asList(attempt.getEncrypted().replaceAll("[?!,.:;#$\"'*-=+_()1234567890/@~`&^%]", "").toLowerCase().split("[ \n\r]"))); // hash the decrypt attempt
 
                 // get the portion of text that is in the dictionary.
                 double size = file.size();
