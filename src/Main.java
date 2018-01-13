@@ -13,7 +13,7 @@ public class Main {
 
 
         try{
-            crypto = new Crypto("Dictionary.txt", "Chars.txt");
+            crypto = new Crypto("DictionaryFiles/Dictionary.txt", "DictionaryFiles/Chars.txt");
         }catch (Exception e){
             System.out.println("Fatal error, dictionary not found or character set not found.");
             System.exit(0);
@@ -22,7 +22,7 @@ public class Main {
         // begin menu
         System.out.println("Welcome to the Cryptomatic.");
         while(!done){
-            System.out.println("What would you like to do?.\n" +
+            System.out.println("What would you like to do?\n" +
                     "1. Enter the filename and key to encrypt.\n" +
                     "2. Enter the filename and key to decrypt.\n" +
                     "3. Enter the filename to brute force.\n" +
@@ -51,7 +51,7 @@ public class Main {
                             System.out.println("Decrypted successfully!\n");
                             System.out.println("Key is: " + Arrays.toString(wrapper.getData()) +  "\n Contents are:");
                             System.out.println(wrapper.getEncrypted());
-                            writer = new PrintWriter(new File("bruteForce.txt"));
+                            writer = new PrintWriter(new File("Output/bruteForce.txt"));
                             writer.write(wrapper.getEncrypted());
                             writer.close();
                         }else System.out.println("Failed to decrypt the file.");
