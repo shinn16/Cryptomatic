@@ -3,19 +3,16 @@ import java.util.*;
 
 public class Main {
     public static void main(String[] args){
-        // initial variables
         boolean done = false;
         int choice = 0;
         Wrapper wrapper;
         Crypto crypto = null;
         Scanner scanner = new Scanner(System.in);
         PrintWriter writer;
-
-
         try{
             crypto = new Crypto("DictionaryFiles/Dictionary.txt", "DictionaryFiles/Chars.txt");
         }catch (Exception e){
-            System.out.println("Fatal error, dictionary not found or character set not found.");
+            System.out.println("Fatal error, dictionary or character set not found.");
             System.exit(0);
         }
 
@@ -34,20 +31,20 @@ public class Main {
                 choice = Integer.parseInt(scanner.nextLine());
                 switch (choice){
                     case 1:
-                        wrapper = crypto.encrypt(getFileCharacters(), getUserKey());
+                        wrapper = crypto.encrypt(getFileCharacters(), getUserKey());  // generate encrypted data
                         writer = new PrintWriter(wrapper.getFileName());
-                        writer.write(wrapper.getEncrypted());
+                        writer.write(wrapper.getEncrypted()); // write it out
                         writer.close();
                         break;
                     case 2:
-                        wrapper = crypto.encrypt(getFileCharacters(), getUserKey());
+                        wrapper = crypto.encrypt(getFileCharacters(), getUserKey());  // decrypt
                         writer = new PrintWriter(wrapper.getFileName());
-                        writer.write(wrapper.getEncrypted());
+                        writer.write(wrapper.getEncrypted());  //write out
                         writer.close();
                         break;
                     case 3:
                         wrapper = crypto.bruteForce(getFileCharacters());
-                        if (wrapper != null){
+                        if (wrapper != null){  // if we decrypted successfully
                             System.out.println("Decrypted successfully!\n");
                             System.out.println("Key is: " + Arrays.toString(wrapper.getData()) +  "\n Contents are:");
                             System.out.println(wrapper.getEncrypted());
@@ -74,6 +71,12 @@ public class Main {
 
     }
 
+    /**
+     * Asks user for a file path until a file path is given,
+     * then returns all characters in said file.
+     *
+     * @return char array fo all characters in a given file
+     */
     private static Wrapper getFileCharacters(){
         boolean validFile;
         Scanner scanner = new Scanner(System.in);
@@ -87,7 +90,7 @@ public class Main {
                 filename = scanner.nextLine();
                 data = loadFile(filename);
                 validFile = true;
-            }catch (IOException e){
+            }catch (IOException e){ // if the user gives us a bad file
                 validFile = false;
                 System.out.println("Please enter a valid file location.\n");
             }
@@ -95,6 +98,11 @@ public class Main {
         return new Wrapper(filename, data);
     }
 
+    /**
+     * Asks a user for a key until a valid key is given.
+     *
+     * @return two character user key
+     */
     private static char[] getUserKey(){
         Scanner scanner = new Scanner(System.in);
         boolean validKey = false;
@@ -111,6 +119,13 @@ public class Main {
         return key.toCharArray();
     }
 
+    /**
+     * Loads a file character by character.
+     *
+     * @param fileName String
+     * @return char array of all characters in the file
+     * @throws IOException if file not found
+     */
     private static char[] loadFile(String fileName) throws IOException{
 
         System.out.print("Loading file...");
@@ -124,9 +139,9 @@ public class Main {
         int x, pos = 0;
         char[] characters = new char[0];
         while ((x = buffer.read()) != -1) {
-            char ch = (char) x;
+            char character = (char) x;
             characters = Arrays.copyOf(characters, characters.length + 1);
-            characters[pos++] = ch;
+            characters[pos++] = character;
         }
         System.out.println("Done!");
         return characters;
@@ -143,11 +158,18 @@ class Crypto{
 
         scanner = new Scanner(new File(characterFile));
         while (scanner.hasNextLine()) characters.add(scanner.nextLine().charAt(0)); // adds chars to the character dictionary
-        characters.add(' ');  // adding the space because it disappears from the text file
+        characters.add(' ');  // adding the space and other absent characters
         characters.add('\r');
         characters.add('\n');
     }
 
+    /**
+     * Used to both encrypt and decrypt a file with a known key.
+     *
+     * @param wrapper  Wrapper containing file name and data
+     * @param key  char array user key
+     * @return Wrapper containing encrypted or decrypted data string
+     */
     Wrapper encrypt(Wrapper wrapper, char[] key){
 
         char[] chars = wrapper.getData();
@@ -173,6 +195,18 @@ class Crypto{
         return new Wrapper(wrapper.getFileName(), writeOut);
     }
 
+    /**
+     * Used by the bruteForce method to decrypt files.
+     *
+     * What makes this different from the encrypt method is that
+     * this method with check the file for correct characters as it
+     * decrypts. In the event that a character is not a valid character,
+     * decryption stops and a null Wrapper is returned.
+     *
+     * @param wrapper Wrapper containing file name and data
+     * @param key  char array containing generated key
+     * @return  Wrapper with decrypted data and decrypted key
+     */
     private Wrapper decrypt(Wrapper wrapper, char[] key){
         char[] chars = wrapper.getData();
         ArrayList<Character> converted = new ArrayList<>(); // storage for the converted characters
@@ -203,6 +237,15 @@ class Crypto{
         return new Wrapper(wrapper.getFileName(), writeOut);
     }
 
+    /**
+     * This method generates all possible keys and check them
+     * using the decrypt method. Using HashSets, we minimize the
+     * time needed to iterate over the file and check validity
+     * of the decryption.
+     *
+     * @param wrapper  Wrapper with data to decrypt
+     * @return Wrapper that has decrypted key and data string
+     */
     Wrapper bruteForce(Wrapper wrapper){
         HashSet<String> file = new HashSet<>();
         long startTime = System.currentTimeMillis(), endTime; // used to get decrypt time.
@@ -211,12 +254,14 @@ class Crypto{
             for (char y: characters) {
                 Wrapper attempt = decrypt(wrapper, new char[]{x, y}); // attempt to decode using current key
                 if (attempt == null) break; // if we get a null return, it means we skipped out due to bad characters.
-                file.addAll(Arrays.asList(attempt.getEncrypted().replaceAll("[?!,.:;#$\"'*-=+_()1234567890/@~`&^%]", "").toLowerCase().split("[ \n\r]"))); // hash the decrypt attempt
+
+                // The decrypted string is stripped of all numeric characters and symbols, then made lower case, then lastly split into an array that can be checked with the dictionary hash
+                file.addAll(Arrays.asList(attempt.getEncrypted().replaceAll("[?!,.:;#$\"'*-=+_()1234567890/@~`&^%]", "").toLowerCase().split("[ \n\r]")));
 
                 // get the portion of text that is in the dictionary.
-                double size = file.size();
-                file.retainAll(dictionary);
-                size = (double) file.size()/ size;
+                double size = file.size(); // save current size
+                file.retainAll(dictionary); // only keep words that were found in the dictionary
+                size = (double) file.size()/ size;  // check for the percent of words that were in the dictionary
 
                 // if 70 percent of the text is in the dictionary, accept it.
                 if(size >= .7){
@@ -233,11 +278,12 @@ class Crypto{
             }
 
         }
-        return null;
+        return null; // if we fail to decrypt, return null.
     }
 }
 
-class Wrapper{
+
+class Wrapper{  // just a data wrapper to help with passing data between methods.
     private String fileName, encrypted;
     private char[] data;
 
