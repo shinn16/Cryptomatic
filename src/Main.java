@@ -49,7 +49,7 @@ public class Main {
                             System.out.println("Decrypted successfully!\n");
                             System.out.println("Key is: " + Arrays.toString(wrapper.getData()) +  "\n Contents are:");
                             System.out.println(wrapper.getEncrypted());
-                            writer = new PrintWriter(new File("Output/bruteForce.txt"));
+                            writer = new PrintWriter(new File("bruteForce.txt"));
                             writer.write(wrapper.getEncrypted());
                             writer.close();
                         }else System.out.println("Failed to decrypt the file.");
