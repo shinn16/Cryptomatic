@@ -38,6 +38,7 @@ public class Main {
                         break;
                     case 2:
                         wrapper = crypto.encrypt(getFileCharacters(), getUserKey());  // decrypt
+                        System.out.println("File contents:\n" + wrapper.getEncrypted()); // print contents
                         writer = new PrintWriter(wrapper.getFileName());
                         writer.write(wrapper.getEncrypted());  //write out
                         writer.close();
